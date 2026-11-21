@@ -4,15 +4,22 @@ create database unigear
   collate utf8mb4_unicode_ci;
 use unigear;
 
+CREATE TABLE roles (
+  role_id   INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(20) NOT NULL UNIQUE,
+  name VARCHAR(50) NOT NULL
+);
+
 create table users (
     user_id    bigint        not null auto_increment primary key,
+    role_id int not null, 
     email      varchar(255)  not null unique,
     password   varchar(255)  not null,
     full_name  varchar(100)  not null,
     phone      varchar(20)   null,
-    role       enum('CUSTOMER','SELLER','ADMIN') not null,
     status     enum('ACTIVE','DISABLED') not null default 'ACTIVE',
-    balance    decimal(15,2) not null default 0 check (balance >= 0)
+    balance    decimal(15,2) not null default 0 check (balance >= 0),
+    foreign key (role_id) references roles(role_id)
 );
 
 create table addresses (
@@ -82,7 +89,7 @@ create table orders (
     user_id         bigint not null,
     store_id        bigint not null,
     status          enum('PENDING','CONFIRMED','SHIPPING','DELIVERED','CANCELLED') not null default 'PENDING',
-    payment_method  enum('COD','CREADIT_CARD','DEBIT_CARD','BANK_TRANSFER','E_WALLET') not null,
+    payment_method  enum('COD','CREDIT_CARD','DEBIT_CARD','BANK_TRANSFER','E_WALLET') not null,
     shipping_fee    decimal(15,2) not null default 0 check (shipping_fee >= 0),
     recipient_name  varchar(100) not null,
     phone           varchar(20) not null,
@@ -105,7 +112,7 @@ create table order_items (
 
 create table reviews (
     review_id      bigint auto_increment primary key,
-    order_item_id  bigint not null,
+    order_item_id  bigint not null unique,
     rating         tinyint not null check (rating between 1 and 5),
     comment        varchar(1000),
     created_at     datetime not null default current_timestamp,
@@ -117,7 +124,7 @@ create table wallet_transactions (
     user_id         bigint not null,
     order_id        bigint,
     amount          decimal(15,2) not null,
-    type            enum('PAYMENT','INCOME','REFUND','ADMIN_ADJUST','DEPOSIT','WITHBACK') not null,
+    type            enum('PAYMENT','INCOME','REFUND','ADMIN_ADJUST','DEPOSIT','WITHDRAW') not null,
     created_at      datetime not null default current_timestamp,
     foreign key (user_id)  references users(user_id),
     foreign key (order_id) references orders(order_id)
@@ -155,3 +162,6 @@ create table complaints (
     resolved_at   datetime,
     foreign key (order_id) references orders(order_id)
 );
+
+
+
